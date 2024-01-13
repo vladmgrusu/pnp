@@ -260,6 +260,14 @@ combines a number of standard Coq's tactics in an attempt to finish
 the proof of the current goal and reports an error if it fails to do
 so.  *)
 
+Lemma forall_dist{T:Type}:
+forall (P Q: T -> Prop), (forall x, P x -> Q x) ->
+            (forall y, P y) -> forall z, Q z.
+Proof.
+move=> P Q Ha Hq z.  
+apply: Ha.
+exact: Hq.
+Qed.
 (** ** On forward and backward reasoning
 
 Let us check now the actual value of the proof term of theorem
