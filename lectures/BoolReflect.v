@@ -579,14 +579,39 @@ one can perform a case analysis on it.
 Lemma xorP_gen (b1 b2 : bool)(P1 P2: Prop): 
   reflect P1 b1 -> reflect P2 b2 -> reflect (XOR P1 P2) (xorb b1 b2).
 Proof.
-(* fill in your proof here instead of [admit] *)
-Admitted.
-
+(* my proof *)
+rewrite /XOR /xorb.
+case => H1 ; case => H2;constructor.
+-
+ case => Hn Hnn. by apply: Hnn.
+-
+ split; first by left.
+ by case => p1 p2; apply: H2.
+-
+ split; first by right.
+ by case => p1 p2; apply: H1.
+-
+ case => Hn Hnn.
+ by case : Hn => [ Hn | Hn]; [apply: H1 | apply:H2].
+Restart.
+(* from solutions *)
+case=>H1; case=>H2; constructor; rewrite /XOR. 
+- by case; case=>H; apply.
+- split; first by left. 
+  by case=>_ H; apply: H2.
+- split; first by right.
+  by case=>H _; apply: H1.
+- intuition.
+Qed.
 
 Lemma xorP (b1 b2 : bool): reflect (XOR b1 b2) (xorb b1 b2).
 Proof.
-(* fill in your proof here instead of [admit] *)
-Admitted.
+(* my proof *)
+apply: xorP_gen; [case :b1  | case: b2]; constructor => //.
+Restart.
+(*from solutions*)
+by apply: xorP_gen; case:b1=>//=; case:b2=>//=; constructor.
+Qed.
 
 
 (** 
@@ -609,7 +634,36 @@ Prove the following equivalence lemma between to versions of [XOR]:
 
 Lemma XORequiv P Q: XOR P Q <-> XOR' P Q.
 Proof.
-(* fill in your proof here instead of [admit] *)
+(* my proof *)
+split => Hx; case: Hx; rewrite /XOR /XOR'.
+- move => [p | q] H.
+
+ + left;split => //.
+    move => q ; apply: H; split => //.
+ +
+   right; split => //. 
+   move => p ; apply: H; split => //.
+-
+  case => p nq; split; first by left.
+  by move => pq; case: pq => _ q; apply: nq.
+-
+  case => np q; split ; first by right. 
+  by move => pq; case: pq => p _; apply: np.
+Restart.
+(* from solutions*)
+split. 
+- case; case=>[p|q] H. 
+  - by left; split=>// q; apply: H.
+  by right; split=>// p; apply H.
+case; case=>p q.
+- split=>[| H]; first by left.
+  by apply: q; case: H.
+split; first by right. 
+by case=>/p.
+Qed.
+
+
+Search _ (~(?X /\ ?Y)).
 Admitted.
 
 
