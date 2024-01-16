@@ -103,6 +103,11 @@ Goal forall P Q R, (P -> Q /\ R) -> P -> R.
 Proof.
 move=> P Q R H.
 by case/H. 
+Undo.
+(*equivalent to case/H*)
+move /H.
+case.
+done.
 Qed.
 
 (** ** Using views with equivalences *)
@@ -437,7 +442,8 @@ hypothesis [H] declared above.
 
 *)
 
-by case=>_ /H.
+case=>_ /H.
+done.
 Qed.
 
 (** 
@@ -454,8 +460,14 @@ demonstrated by the next definition.
 
 Definition andb_orb b1 b2: b1 && b2 -> b1 || b2.
 Proof.
+move/andP.
+case => H1 H2.
+apply /orP.
+by left.
+
+(**
 case/andP=>H1 H2.
-by apply/orP; left.
+by apply/orP; left.*)
 Qed.
 
 Print andb_orb.
