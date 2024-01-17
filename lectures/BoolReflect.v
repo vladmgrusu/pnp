@@ -1,7 +1,7 @@
 (**  %\chapter{Views and Boolean Reflection}% *)
 
 From mathcomp
-Require Import ssreflect ssrfun eqtype ssrnat ssrbool prime eqtype.
+Require Import ssreflect ssrfun eqtype ssrnat ssrbool prime.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
@@ -663,9 +663,6 @@ by case=>/p.
 Qed.
 
 
-Search _ (~(?X /\ ?Y)).
-Admitted.
-
 
 (** 
 The final step is to use the equivalence we have just proved in order
@@ -680,9 +677,12 @@ following proof to be a one-liner.
 
 Lemma xorP' (b1 b2 : bool): reflect (XOR' b1 b2) (xorb b1 b2).
 Proof.
-(* fill in your proof here instead of [admit] *)
-Admitted.
-
+(*my proof*)
+case: b1; case: b2;constructor; rewrite -XORequiv /XOR; intuition.
+Restart.
+(*from solutions*)
+by apply: (equivP (xorP b1 b2) (XORequiv _ _)).
+Qed.
  
 (** 
 ---------------------------------------------------------------------
@@ -698,15 +698,17 @@ following lemmas in one line each.
 
 Lemma xorbC (b1 b2: bool) : (xorb b1 b2) = (xorb b2 b1). 
 Proof.
-(* fill in your proof here instead of [admit] *)
-Admitted.
-
+(* my proof *)
+case:b1; case:b2 => //.
+(*same from solutions*)
+Qed.
 
 
 Lemma xorbA (b1 b2 b3: bool) : (xorb (xorb b1 b2) b3) = (xorb b1 (xorb b2 b3)). 
 Proof.
-(* fill in your proof here instead of [admit] *)
-Admitted.
+(* my proof *)
+case:b1; case:b2; case:b3 => //.
+Qed.
 
 
 
@@ -730,14 +732,23 @@ represented y booleans (without using the [intuition] tactic):
 
 Lemma xorCb (b1 b2: bool) : (XOR b1 b2) <-> (XOR b2 b1). 
 Proof.
-(* fill in your proof here instead of [admit] *)
-Admitted.
+Search _ (reflect _ _).
+(*my proof*)
+move : (xorbC b1 b2) => Hc.
+apply rwP2 with (b := xorb b1 b2);  [by apply xorP |].
+rewrite Hc ; by apply xorP.
+Restart.
+(* from solutions*)
+by split; move/xorP; rewrite xorbC; move/xorP.
+Qed.
+
 
 
 Lemma xorAb (b1 b2 b3: bool) : (XOR (XOR b1 b2) b3) <-> (XOR b1 (XOR b2 b3)). 
 Proof.
-(* fill in your proof here instead of [admit] *)
-Admitted.
+rewrite /XOR; 
+case: b1 ; case : b2 ; case: b3 ; intuition.
+Qed.
 
 
 (** 
@@ -774,6 +785,17 @@ Lemma ExistsUnique1 A (P : A -> A -> Prop):
   (exists !x, exists y, P x y) -> 
   (exists !x, exists y, P y x) ->
   (exists !x, exists !y, P x y).
+(* adapted from pnp website*)
+Proof.
+case=>x1[[y1 Pxy1]] G1[x2[[y2 Pxy2]] G2]; exists y2; split.
+- by exists x2; split=>// x0 Pxy0; apply: G2; exists y2.
+move=>x'. move:(G1 x')=>E G3.
+rewrite -E; last by case: G3=>y'; case=> Z _; exists y'.
+symmetry.
+apply: G1.
+by exists x2.
+Qed.
+
 
 (**
 
@@ -783,7 +805,7 @@ as follows:
 
 *)
 
-Print unique.
+(*Print unique*)
 
 (**
 [[
@@ -801,8 +823,7 @@ conjunction, it can be decomposed by [case] and proved using the
 
 *)
 
-Proof.
-Admitted.
+
 
 (**
 
@@ -820,7 +841,20 @@ Definition Q x y : Prop :=
 
 Lemma qlm : (exists !x, exists !y, Q x y).
 Proof.
-Admitted.
+(*my proof*)
+exists true; split; [exists true ; split |]; [rewrite/Q; intuition  | | ].
+- case => b => //.
+-
+ case =>b => //.
+ case: b => //.
+ case => b => //; case : b  => Hx Ha; [by rewrite (Ha false) | by rewrite - (Ha true)].
+(* from pnp website*)
+Restart.
+exists true; split; first by exists true; split=> //; case=>//.
+case=>//; rewrite /Q; case; case=>/=; case=>_ G.
+- by move:(G false (eqxx false)).
+by move:(G true (eqxx true)). 
+Qed.
 
 (**
 
@@ -851,7 +885,16 @@ Lemma ExistsUnique2 :
    (exists !x, exists y, P x y) /\ (exists !x, exists y, P y x)) ->
   False.
 Proof.
-Admitted.
+(*from pnp website*)
+move/(_ _ _ qlm); rewrite /Q/=; case=> H1 H2.
+case: H1; case; case; case; case=> //= _.
+- move=>G1; move:(G1 false)=>/=G2. 
+  by suff: true = false by []; last by apply: G2; exists true.
+- move=>G1; move:(G1 true)=>/=G2. 
+  by suff: false = true by []; last by apply: G2; exists true.
+- move=>G1; move:(G1 true)=>/=G2. 
+  by suff: false = true by []; last by apply: G2; exists true.
+Qed.
 
 
 (**
